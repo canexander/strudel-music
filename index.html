@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Strudel Songs</title>
+  <script src="https://strudel.cc/strudelApp.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 1rem; }
+    button { margin-left: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>My Strudel Songs</h1>
+  <ul id="songs-list">
+    <li>Loading songs...</li>
+  </ul>
+  <script>
+    async function loadSongs() {
+      try {
+        const resp = await fetch('songs/list.json');
+        const fileNames = await resp.json();
+        const listEl = document.getElementById('songs-list');
+        listEl.innerHTML = '';
+        if (!fileNames || fileNames.length === 0) {
+          const li = document.createElement('li');
+          li.textContent = 'No songs available yet.';
+          listEl.appendChild(li);
+          return;
+        }
+        for (const filename of fileNames) {
+          const codeResp = await fetch('songs/' + filename);
+          const code = await codeResp.text();
+          const li = document.createElement('li');
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = filename.replace(/\.js$/, '');
+          const btn = document.createElement('button');
+          btn.textContent = 'Play';
+          btn.onclick = () => {
+            const url = new URL('https://strudel.cc/');
+            url.searchParams.set('code', code);
+            window.open(url, '_blank');
+          };
+          li.appendChild(titleSpan);
+          li.appendChild(btn);
+          listEl.appendChild(li);
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('songs-list').innerHTML = '<li>Error loading songs.</li>';
+      }
+    }
+    loadSongs();
+  </script>
+</body>
+</html>
